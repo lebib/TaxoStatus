@@ -64,7 +64,12 @@ function taxo_status_form_get_content($type, $id = NULL){
 	}
 	elseif($type == 'tid'){
 		if(!isset($id)){
-			$id = variable_get('taxo_status_vid');
+			if(isset($form_state['input']['taxo_status_vid'])){
+				$id = $form_state['input']['taxo_status_vid'];
+			}
+			elseif(!empty(variable_get('taxo_status_vid'))){
+				$id = variable_get('taxo_status_vid');
+			}
 		}
 		$terms = taxonomy_get_tree($id);
 //		foreach($terms as $term){
@@ -90,6 +95,9 @@ function taxo_status_form($form, &$form_state){
 			'#required' => TRUE,
 			'#default_value' => variable_get('taxo_status_vid', '0'),
 		);
+	}
+	else{
+//		variable_set('taxo_status_use_vid', $form_state['triggering_element']['value']);
 	}	
 		$form['taxo_status_vid']['#ajax'] = array(
 	  	'event' => 'change',
@@ -98,8 +106,8 @@ function taxo_status_form($form, &$form_state){
 			'method' => 'replace',
 			'effect' => 'none',
 		);
-	if(variable_get('taxo_status_vid')){
 		$form = array_merge($form,taxo_status_tids_form($form, $form_state));
+	if(variable_get('taxo_status_vid')){
 	}
 //	return system_settings_form($form);
 	return $form;
@@ -110,7 +118,7 @@ function taxo_status_form($form, &$form_state){
  *
  */
 function taxo_status_tids_form($form, &$form_state){
-//	dpm($form_state);
+//	dprint_r($form_state);
 	$form['taxo_status_tid'] = array(
 		'#prefix' => '<div id="term_ids">',
 		'#suffix' => '</div>',
