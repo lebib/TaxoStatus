@@ -1,0 +1,10 @@
+name = Taxonomy Status
+description = Multiple status bosed on taxonomy
+tags[] = Custom
+
+
+core = 7.x
+version = "7.x-0.1"
+
+configure = admin/config/content/taxo_status
+files[] = taxo_status.module
