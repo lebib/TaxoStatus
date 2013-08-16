@@ -21,7 +21,7 @@ function taxo_status_form_theme($existing, $type, $theme, $path) {
 
 
 function theme_taxo_status_form($elements){
-//	dprint_r($elements);
+	dprint_r($elements);
 	$element = $elements['element'];
 	drupal_add_tabledrag('form_id', 'order', 'sibling', 'rank-weight'); // for table dragging
 	
@@ -64,14 +64,10 @@ function taxo_status_form_get_content($type, $id = NULL){
 	}
 	elseif($type == 'tid'){
 		if(!isset($id)){
-			if(isset($form_state['input']['taxo_status_vid'])){
-				$id = $form_state['input']['taxo_status_vid'];
-			}
-			elseif(!empty(variable_get('taxo_status_vid'))){
 				$id = variable_get('taxo_status_vid');
-			}
 		}
 		$terms = taxonomy_get_tree($id);
+
 //		foreach($terms as $term){
 //			$select[$term->tid] = $term->name;
 //		}
@@ -88,28 +84,30 @@ function taxo_status_form_get_content($type, $id = NULL){
 
 function taxo_status_form($form, &$form_state){
 	if(!isset($form_state['triggering_element']['#name'])){
+	}
+	else{
+//		variable_set('taxo_status_use_vid', $form_state['triggering_element']['value']);
+	}
 		$form['taxo_status_vid'] = array(
 			'#title' => t('Vocabulary to use'),
 			'#type' => 'select',
 			'#options' => taxo_status_form_get_content('vid'),
 			'#required' => TRUE,
 			'#default_value' => variable_get('taxo_status_vid', '0'),
+			'#suffix' => '<div id="term_ids_warp"></div>',
 		);
-	}
-	else{
-//		variable_set('taxo_status_use_vid', $form_state['triggering_element']['value']);
-	}	
 		$form['taxo_status_vid']['#ajax'] = array(
 	  	'event' => 'change',
 			'callback' => 'taxo_status_tids_form',
-			'wrapper' => 'term_ids',
+			'wrapper' => 'term_ids_warp',
 			'method' => 'replace',
 			'effect' => 'none',
 		);
-		$form = array_merge($form,taxo_status_tids_form($form, $form_state));
+//	$form = array_merge($form,taxo_status_tids_form($form, $form_state, TRUE));
 	if(variable_get('taxo_status_vid')){
 	}
 //	return system_settings_form($form);
+//	dprint_r($form);
 	return $form;
 }
 /**
@@ -117,22 +115,27 @@ function taxo_status_form($form, &$form_state){
  * Problem with numerical attribus
  *
  */
-function taxo_status_tids_form($form, &$form_state){
-//	dprint_r($form_state);
+function taxo_status_tids_form($form, &$form_state = NULL, $display_all = FALSE){
+// dprint_r($form_state);
+	if($display_all){
+		$selected_vid = variable_get('taxo_status_vid', '0');
+	}
+	else{
+		$selected_vid = $form_state['values']['taxo_status_vid'];
+	}
+  $form_state['rebuild'] = TRUE;
 	$form['taxo_status_tid'] = array(
-		'#prefix' => '<div id="term_ids">',
-		'#suffix' => '</div>',
 		'#tree' => TRUE,
 		'#theme' => 'theme_taxo_status_form',
 	);
 	$init = 0;
-	foreach(taxo_status_form_get_content('tid') as $key => $term){
-		$form['taxo_status_tid'][$key]['taxo_tid_active'] = array(
+	foreach(taxo_status_form_get_content('tid', $selected_vid) as $term){
+		$form['taxo_status_tid'][$term->tid]['taxo_tid_active'] = array(
 			'#type' => 'checkbox',
 			'#title' => $term->name,
 			'#default_value' => $init,
 		);
-		$form['taxo_status_tid'][$key]['step_type_taxo_tid'] = array(
+		$form['taxo_status_tid'][$term->tid]['taxo_tid_step_type'] = array(
 			'#type' => 'radios',
 			'#default_value' => '0',
 			'#options' => array(
@@ -140,7 +143,7 @@ function taxo_status_tids_form($form, &$form_state){
 				1 => t('Linear')
 			)
 		);
-		$form['taxo_status_tid'][$key]['weight'] = array(
+		$form['taxo_status_tid'][$term->tid]['weight'] = array(
 			'#type' => 'textfield',
 			'#default_value' => '0',
 			'#size' => '3',
@@ -157,8 +160,14 @@ function taxo_status_tids_form($form, &$form_state){
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
-//	dprint_r($form);
-	return $form;
+  
+  if($display_all){
+  	$return = $form['taxo_status_tid'];
+  }
+  else{
+  	$return = drupal_render($form['taxo_status_tid']);
+  }
+	return $return;
 }
 
 function taxo_status_form_submit($form, &$form_state) {
