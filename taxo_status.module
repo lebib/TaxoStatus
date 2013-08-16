@@ -63,8 +63,8 @@ function taxo_status_menu() {
   $items = array();
   
   $items['admin/config/content/taxo_status'] = array(
-  	'title' => 'Taxo Term Editor',
-  	'description' => 'Configuration for Taxo Term Editor module',
+  	'title' => 'Taxonomy Status',
+  	'description' => 'Configuration for Taxonomy Status module',
   	'page callback' => 'drupal_get_form',
   	'page arguments' => array('taxo_status_form'),
   	'access arguments' => array('access administration pages'),
@@ -83,12 +83,12 @@ function taxo_status_menu() {
 *   Taxonomy tid to edit in block
 */
 function taxo_status_contents(){
-	$taxo_terms = array();
+	$taxo_states = array();
 	$tids = array("1", "6");
 	foreach ($tids as $tid) {
-		array_push($taxo_terms, taxonomy_term_load($tid));
+		array_push($taxo_states, taxonomy_term_load($tid));
 	}
-	return $taxo_terms;
+	return $taxo_states;
 }
 
 /**
@@ -129,6 +129,3 @@ function taxo_status_block_view(){
 	}
 	return $block;
 }
-
-
-
